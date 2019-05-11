@@ -8,7 +8,14 @@
 (setq url-http.attempt-keepalives nil)
 (add-to-list 'load-path "~/.emacs.d/elpa/")
 
-(require 'use-package)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; use-package setup.                               ;;;
+;;; Will intall the package if not already installed ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(unless (package-installed-p 'use-package)
+  (progn (message "installing use-package")
+	 (package-refresh-contents)
+	 (package-install 'use-package)))
 
 ;; I have no idea
 (put 'downcase-region 'disabled nil)
@@ -58,6 +65,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Misc package setup ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
+(winner-mode 1)
+
 (use-package cmake-mode
   :ensure t
   )
@@ -90,6 +99,10 @@
 
 (use-package guru-mode
   :ensure t)
+
+(use-package web-mode
+  :ensure t)
+
 ;;;;;;;;;;;;;;;;;;;
 ;;; Email setup ;;;
 ;;;;;;;;;;;;;;;;;;;
@@ -113,8 +126,6 @@
 (global-set-key (kbd "M-n") (kbd "C-u 1 C-v"))
 (global-set-key (kbd "M-p") (kbd "C-u 1 M-v"))
 
-
-
 (setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
       backup-by-copying t    ; Don't delink hardlinks
       version-control t      ; Use version numbers on backups
@@ -131,7 +142,7 @@
   :init
   (yas-global-mode 1)
   (setq yas-snippet-dirs (append yas-snippet-dirs '("~/.emacs.d/snippets")))
-) 
+)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; company-mode setup ;;;
@@ -182,7 +193,7 @@
 (use-package flycheck-color-mode-line
   :ensure t)
 
-(use-package flycheck-clang-analyser
+(use-package flycheck-clang-analyzer
   :after (flycheck)
   :ensure t
   :init
@@ -229,6 +240,7 @@
   :bind
   ("C-c n" . mc/mark-next-like-this)
   ("C-c p" . mc/mark-previous-like-this)
+  ("C-c a" . mc/mark-all-like-this)
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;
