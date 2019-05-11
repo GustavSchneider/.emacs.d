@@ -47,19 +47,19 @@
  ;; If there is more than one, they won't work right.
  '(default ((t (:height 130 :family "Hack")))))
 (use-package dracula-theme
+  :ensure t
   :init
-  (load-theme 'dracula t)
-  :ensure)
+  (load-theme 'dracula t))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; rainbow-delimiter mode setup ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (use-package rainbow-delimiters
+  :ensure t
   :init
   (add-hook 'c-mode-hook #'rainbow-delimiters-mode)
   (add-hook 'c++-mode-hook #'rainbow-delimiters-mode)
   (add-hook 'emacs-lisp-mode-hook #'rainbow-delimiters-mode)
-  :ensure t
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -81,13 +81,13 @@
 )
 (use-package sr-speedbar
   :ensure t
-  :init
-  (global-set-key (quote [f5]) (quote sr-speedbar-toggle))
+  :bind ([f5] . sr-speedbar-toggle)
   )
 
 (use-package centered-window
   :ensure t
   :init
+  (setq cwm-centered-window-width 100)
   (centered-window-mode t)
   )
 
@@ -101,6 +101,9 @@
   :ensure t)
 
 (use-package web-mode
+  :ensure t)
+
+(use-package gist
   :ensure t)
 
 ;;;;;;;;;;;;;;;;;;;
@@ -136,20 +139,39 @@
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Setup Yasnippet ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;
-(require 'use-package)
+
+(use-package yasnippet-snippets
+         :ensure t)
 (use-package yasnippet
   :ensure t
   :init
-  (yas-global-mode 1)
   (setq yas-snippet-dirs (append yas-snippet-dirs '("~/.emacs.d/snippets")))
-)
+  (yas-global-mode 1)
+  )
 
+;;;;;;;;;;;;;;;;;;;;;;;;
+;;; irony-mode setup ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;
+(use-package irony
+  :ensure t
+  :init
+  (add-hook 'c++-mode-hook 'irony-mode)
+  (add-hook 'c-mode-hook 'irony-mode)
+  (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+  )
+(use-package irony-eldoc
+  :ensure t)
+(use-package company-irony
+  :ensure t)
+(use-package flycheck-irony
+  :ensure t)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; company-mode setup ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
+(use-package company-c-headers
+  :ensure t)
 (use-package company-glsl
-  :ensure t
-  )
+  :ensure t)
 
 (defun my-company-visible-and-explicit-action-p ()
     (and (company-tooltip-visible-p)
@@ -158,8 +180,10 @@
   "Setting up company-mode."
   (company-mode)
   (set (make-local-variable 'company-require-match) nil)
-  (set (make-local-variable 'company-backends) '(company-files
-                                                 company-clang
+  (set (make-local-variable 'company-backends) '(;;company-files
+                                                 ;;company-c-headers
+                                                 company-irony
+                                                 ;;company-clang
                                                  company-glsl))
   (set (make-local-variable 'company-auto-complete)
        #'my-company-visible-and-explicit-action-p)
@@ -169,12 +193,15 @@
          company-echo-metadata-frontend))
   (set (make-local-variable 'company-idle-delay) 0.3)
   (set (make-local-variable 'company-async-timeout) 5)
-  (set (make-local-variable 'company-dabbrev-downcase) 0)
   (local-set-key (kbd "<tab>") #'company-indent-or-complete-common))
 
-(add-hook 'c++-mode-hook 'my-company-mode-hook)
-(add-hook 'c-mode-hook 'my-company-mode-hook)
-(add-hook 'glsl-mode-hook 'my-company-mode-hook)
+(use-package company
+  :ensure t
+  :after (company-glsl company-c-headers irony)
+  :init
+  (add-hook 'c++-mode-hook 'my-company-mode-hook)
+  (add-hook 'c-mode-hook 'my-company-mode-hook)
+  (add-hook 'glsl-mode-hook 'my-company-mode-hook))
 
 ;;This will notify when a line is longer than 80 characters in org mode
 (add-hook 'go-mode (lambda () (interactive) (column-marker-1 81)))
@@ -189,6 +216,7 @@
   (add-hook 'after-init-hook #'global-flycheck-mode)
   (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++17")))
   (add-hook 'c++-mode-hook (lambda () (setq flycheck-clang-language-standard "c++17")))
+  (add-hook 'flycheck-mode-hook #'flycheck-irony-setup)
   )
 (use-package flycheck-color-mode-line
   :ensure t)
@@ -241,6 +269,7 @@
   ("C-c n" . mc/mark-next-like-this)
   ("C-c p" . mc/mark-previous-like-this)
   ("C-c a" . mc/mark-all-like-this)
+  ;;("C-S-c C-S-c" . mc/edit-lines)
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;
@@ -251,9 +280,6 @@
   :defer
   :init
     (add-hook 'prog-mode-hook #'ws-butler-mode))
-  
-;;(global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
-;;(global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
 
 
 (put 'upcase-region 'disabled nil)
