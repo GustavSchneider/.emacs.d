@@ -1,0 +1,17 @@
+# -*- mode: snippet -*-
+# name: popup
+# key: popup
+# --
+#include <bits/stdc++.h>
+using namespace std;
+
+typedef pair<int, int> pii;
+
+int main(void) {
+    cin.sync_with_stdio(0);
+    cin.tie(0);
+
+    $0
+    
+    return 0;
+}

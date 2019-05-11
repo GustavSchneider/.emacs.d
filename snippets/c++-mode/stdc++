@@ -1,0 +1,5 @@
+# -*- mode: snipped -*-
+# name: stdc++
+# key: all
+# --
+#include <bits/stdc++.h>
