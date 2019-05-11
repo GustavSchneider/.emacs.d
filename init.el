@@ -16,6 +16,7 @@
   (progn (message "installing use-package")
 	 (package-refresh-contents)
 	 (package-install 'use-package)))
+(require 'use-package)
 
 ;; I have no idea
 (put 'downcase-region 'disabled nil)
@@ -74,7 +75,7 @@
   :ensure t
   )
 ;; KTH has a way to old emacs version
-(if (>= emacs-major-version 25)
+(when (>= emacs-major-version 25)
     (use-package magit
       :ensure t
       )
@@ -129,6 +130,9 @@
 (global-set-key (kbd "M-n") (kbd "C-u 1 C-v"))
 (global-set-key (kbd "M-p") (kbd "C-u 1 M-v"))
 
+(global-set-key (kbd "M-g") 'goto-line)
+(global-set-key (kbd "<f9>") 'linum-mode)
+
 (setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
       backup-by-copying t    ; Don't delink hardlinks
       version-control t      ; Use version numbers on backups
@@ -158,6 +162,7 @@
   (add-hook 'c++-mode-hook 'irony-mode)
   (add-hook 'c-mode-hook 'irony-mode)
   (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+  (add-hook 'irony-mode-hook #'irony-eldoc)
   )
 (use-package irony-eldoc
   :ensure t)
@@ -179,11 +184,9 @@
 (defun my-company-mode-hook ()
   "Setting up company-mode."
   (company-mode)
-  (set (make-local-variable 'company-require-match) nil)
-  (set (make-local-variable 'company-backends) '(;;company-files
-                                                 ;;company-c-headers
+  (set (make-local-variable 'company-require-match) 'never)
+  (set (make-local-variable 'company-backends) '(company-backends
                                                  company-irony
-                                                 ;;company-clang
                                                  company-glsl))
   (set (make-local-variable 'company-auto-complete)
        #'my-company-visible-and-explicit-action-p)
@@ -191,9 +194,11 @@
        '(company-pseudo-tooltip-unless-just-one-frontend
          company-preview-frontend
          company-echo-metadata-frontend))
-  (set (make-local-variable 'company-idle-delay) 0.3)
+  (set (make-local-variable 'company-idle-delay) 0)
   (set (make-local-variable 'company-async-timeout) 5)
-  (local-set-key (kbd "<tab>") #'company-indent-or-complete-common))
+  (set (make-local-variable 'company-minimum-prefix-length) 0)
+  ;;(local-set-key (kbd "<tab>") #'company-indent-or-complete-common)
+  )
 
 (use-package company
   :ensure t
@@ -201,7 +206,11 @@
   :init
   (add-hook 'c++-mode-hook 'my-company-mode-hook)
   (add-hook 'c-mode-hook 'my-company-mode-hook)
-  (add-hook 'glsl-mode-hook 'my-company-mode-hook))
+  (add-hook 'glsl-mode-hook 'my-company-mode-hook)
+  :bind
+  ("<tab>" . company-indent-or-complete-common)
+  ("TAB" . company-indent-or-complete-common)
+  )
 
 ;;This will notify when a line is longer than 80 characters in org mode
 (add-hook 'go-mode (lambda () (interactive) (column-marker-1 81)))
