@@ -41,10 +41,35 @@
 (setq inhibit-startup-screen t)
 (setq inhibit-startup-message t)
 
+
 ;; cycle between buffers
 (global-set-key (kbd "<f8>") 'bury-buffer)
 
-(global-set-key (kbd "C-c C-v") 'uncomment-region)
+;;;;;;;;;;;;;;;;;;;
+;;; Key Binding ;;;
+;;;;;;;;;;;;;;;;;;;
+(windmove-default-keybindings)
+(global-set-key (kbd "S-C-<left>") 'shrink-window-horizontally)
+(global-set-key (kbd "S-C-<right>") 'enlarge-window-horizontally)
+(global-set-key (kbd "S-C-<down>") 'shrink-window)
+(global-set-key (kbd "S-C-<up>") 'enlarge-window)
+
+(setq scroll-preserve-screen-position 1)
+(global-set-key (kbd "M-n") (kbd "C-u 1 C-v"))
+(global-set-key (kbd "M-p") (kbd "C-u 1 M-v"))
+
+(global-set-key (kbd "M-g") 'goto-line)
+(global-set-key (kbd "<f9>") 'linum-mode)
+
+(add-hook 'prog-mode-hook (lambda () (local-set-key (kbd "C-c C-v") 'uncomment-region)))
+
+(setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
+      backup-by-copying t    ; Don't delink hardlinks
+      version-control t      ; Use version numbers on backups
+      delete-old-versions t  ; Automatically delete excess backups
+      kept-new-versions 20   ; how many of the newest versions to keep
+      kept-old-versions 5    ; and how many of the old
+      )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Font and theme setup ;;;
@@ -139,29 +164,6 @@
 (setq user-full-name "Gustav Nelson Schneider")
 (setq user-mail-address "gussch@kth.se")
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Bind Shift+arrow keys so i can move between windows using them ;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(windmove-default-keybindings)
-(global-set-key (kbd "S-C-<left>") 'shrink-window-horizontally)
-(global-set-key (kbd "S-C-<right>") 'enlarge-window-horizontally)
-(global-set-key (kbd "S-C-<down>") 'shrink-window)
-(global-set-key (kbd "S-C-<up>") 'enlarge-window)
-
-(setq scroll-preserve-screen-position 1)
-(global-set-key (kbd "M-n") (kbd "C-u 1 C-v"))
-(global-set-key (kbd "M-p") (kbd "C-u 1 M-v"))
-
-(global-set-key (kbd "M-g") 'goto-line)
-(global-set-key (kbd "<f9>") 'linum-mode)
-
-(setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
-      backup-by-copying t    ; Don't delink hardlinks
-      version-control t      ; Use version numbers on backups
-      delete-old-versions t  ; Automatically delete excess backups
-      kept-new-versions 20   ; how many of the newest versions to keep
-      kept-old-versions 5    ; and how many of the old
-      )
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Setup Yasnippet ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;
@@ -252,10 +254,6 @@ Emacs cant use company-irony if clang is not installed."
   ("<tab>" . company-indent-or-complete-common)
   ("TAB" . company-indent-or-complete-common)
   )
-
-;;This will notify when a line is longer than 80 characters in org mode
-(add-hook 'go-mode (lambda () (interactive) (column-marker-1 81)))
-(add-hook 'c++-mode (lambda () (interactive) (column-marker-1 81)))
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;;; flycheck setup ;;;
