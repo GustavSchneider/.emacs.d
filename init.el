@@ -4,9 +4,14 @@
 (require 'package)
 (add-to-list 'package-archives
 	     '("melpa" . "http://melpa.milkbox.net/packages/") t)
+(add-to-list 'package-archives
+	     '("marmelade" . "http://marmalade-repo.org/packages/") t)
 (package-initialize)
 (setq url-http.attempt-keepalives nil)
 (add-to-list 'load-path "~/.emacs.d/elpa/")
+
+;;check if clang is installed in the machine
+(defvar has-clang (not (eq (executable-find "clang") nil)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; use-package setup.                               ;;;
@@ -35,6 +40,11 @@
 ;;hide start screen
 (setq inhibit-startup-screen t)
 (setq inhibit-startup-message t)
+
+;; cycle between buffers
+(global-set-key (kbd "<f8>") 'bury-buffer)
+
+(global-set-key (kbd "C-c C-v") 'uncomment-region)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Font and theme setup ;;;
@@ -104,7 +114,19 @@
 (use-package web-mode
   :ensure t)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; gist and required packages ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(use-package tabulated-list
+  :ensure t)
+(use-package gh
+  :ensure t)
+(use-package pcache
+  :ensure t)
+(use-package logito
+  :ensure t)
 (use-package gist
+  :after (tabulated-list gh pcache logito)
   :ensure t)
 
 ;;;;;;;;;;;;;;;;;;;
@@ -156,20 +178,23 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; irony-mode setup ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
-(use-package irony
-  :ensure t
-  :init
-  (add-hook 'c++-mode-hook 'irony-mode)
-  (add-hook 'c-mode-hook 'irony-mode)
-  (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
-  (add-hook 'irony-mode-hook #'irony-eldoc)
-  )
-(use-package irony-eldoc
-  :ensure t)
-(use-package company-irony
-  :ensure t)
-(use-package flycheck-irony
-  :ensure t)
+
+(when has-clang)
+  (use-package irony
+    :ensure t
+    :init
+    (add-hook 'c++-mode-hook 'irony-mode)
+    (add-hook 'c-mode-hook 'irony-mode)
+    (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+    (add-hook 'irony-mode-hook #'irony-eldoc)
+    )
+  (use-package irony-eldoc
+    :ensure t)
+  (use-package company-irony
+    :ensure t)
+  (use-package flycheck-irony
+    :ensure t))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; company-mode setup ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -177,36 +202,52 @@
   :ensure t)
 (use-package company-glsl
   :ensure t)
+(use-package company-jedi
+  :ensure t)
 
 (defun my-company-visible-and-explicit-action-p ()
     (and (company-tooltip-visible-p)
          (company-explicit-action-p)))
 (defun my-company-mode-hook ()
   "Setting up company-mode."
-  (company-mode)
-  (set (make-local-variable 'company-require-match) 'never)
-  (set (make-local-variable 'company-backends) '(company-backends
-                                                 company-irony
-                                                 company-glsl))
-  (set (make-local-variable 'company-auto-complete)
+  (setq company-require-match 'never)
+  (setq company-auto-complete
        #'my-company-visible-and-explicit-action-p)
-  (set (make-local-variable 'company-frontends)
+  (setq company-frontends
        '(company-pseudo-tooltip-unless-just-one-frontend
          company-preview-frontend
          company-echo-metadata-frontend))
-  (set (make-local-variable 'company-idle-delay) 0)
-  (set (make-local-variable 'company-async-timeout) 5)
-  (set (make-local-variable 'company-minimum-prefix-length) 0)
-  ;;(local-set-key (kbd "<tab>") #'company-indent-or-complete-common)
-  )
+  (setq company-idle-delay 0)
+  (setq company-async-timeout 5)
+  (setq company-minimum-prefix-length 2))
+
+
+(defun my-company-c-mode-hook ()
+  "Setup company-backends list for c and c++.
+Emacs cant use company-irony if clang is not installed."
+  (if (not has-clang)
+      (set (make-local-variable 'company-backends) '(company-c-headers
+                                                     company-files))
+    (set (make-local-variable 'company-backends) '(company-irony))))
+
+(defun my-company-glsl-mode-hook ()
+  "Setup company-backends list for glsl."
+  (set (make-local-variable 'company-backends) '(company-glsl)))
+
+(defun my-company-python-mode-hook ()
+  "Setup company-backends list for python."
+  (set (make-local-variable 'company-backends) '(company-jedi
+                                                company-files)))
 
 (use-package company
   :ensure t
-  :after (company-glsl company-c-headers irony)
   :init
-  (add-hook 'c++-mode-hook 'my-company-mode-hook)
-  (add-hook 'c-mode-hook 'my-company-mode-hook)
-  (add-hook 'glsl-mode-hook 'my-company-mode-hook)
+  (add-hook 'after-init-hook 'global-company-mode)
+  (add-hook 'after-init-hook 'my-company-mode-hook)
+  (add-hook 'c++-mode-hook 'my-company-c-mode-hook)
+  (add-hook 'c-mode-hook 'my-company-c-mode-hook)
+  (add-hook 'glsl-mode-hook 'my-company-glsl-mode-hook)
+  (add-hook 'python-mode-hook 'my-company-python-mode-hook)
   :bind
   ("<tab>" . company-indent-or-complete-common)
   ("TAB" . company-indent-or-complete-common)
@@ -225,17 +266,17 @@
   (add-hook 'after-init-hook #'global-flycheck-mode)
   (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++17")))
   (add-hook 'c++-mode-hook (lambda () (setq flycheck-clang-language-standard "c++17")))
-  (add-hook 'flycheck-mode-hook #'flycheck-irony-setup)
-  )
+  (when has-clang (add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
 (use-package flycheck-color-mode-line
   :ensure t)
 
-(use-package flycheck-clang-analyzer
-  :after (flycheck)
-  :ensure t
-  :init
-  (flycheck-clang-analyzer-setup)
-  )
+(when has-clang
+  (use-package flycheck-clang-analyzer
+    :after (flycheck)
+    :ensure t
+    :init
+    (flycheck-clang-analyzer-setup)
+    ))
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;;; C++-mode setup ;;;
