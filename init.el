@@ -88,8 +88,8 @@
 (when (>= emacs-major-version 25)
     (use-package magit
       :ensure t
-      )
-)
+      ))
+
 (use-package sr-speedbar
   :ensure t
   :bind ([f5] . sr-speedbar-toggle)
@@ -179,7 +179,7 @@
 ;;; irony-mode setup ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
-(when has-clang)
+(when has-clang
   (use-package irony
     :ensure t
     :init
@@ -266,7 +266,8 @@ Emacs cant use company-irony if clang is not installed."
   (add-hook 'after-init-hook #'global-flycheck-mode)
   (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++17")))
   (add-hook 'c++-mode-hook (lambda () (setq flycheck-clang-language-standard "c++17")))
-  (when has-clang (add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
+  (when has-clang (add-hook 'flycheck-mode-hook #'flycheck-irony-setup)))
+
 (use-package flycheck-color-mode-line
   :ensure t)
 
