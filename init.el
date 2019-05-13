@@ -3,9 +3,9 @@
 ;;;;;;;;;;;;;;;;;;;
 (require 'package)
 (add-to-list 'package-archives
-	     '("melpa" . "http://melpa.milkbox.net/packages/") t)
+             '("melpa" . "http://melpa.milkbox.net/packages/") t)
 (add-to-list 'package-archives
-	     '("marmelade" . "http://marmalade-repo.org/packages/") t)
+             '("marmelade" . "http://marmalade-repo.org/packages/") t)
 (package-initialize)
 (setq url-http.attempt-keepalives nil)
 (add-to-list 'load-path "~/.emacs.d/elpa/")
@@ -41,18 +41,12 @@
 (setq inhibit-startup-screen t)
 (setq inhibit-startup-message t)
 
-
 ;; cycle between buffers
 (global-set-key (kbd "<f8>") 'bury-buffer)
 
 ;;;;;;;;;;;;;;;;;;;
 ;;; Key Binding ;;;
 ;;;;;;;;;;;;;;;;;;;
-(windmove-default-keybindings)
-(global-set-key (kbd "S-C-<left>") 'shrink-window-horizontally)
-(global-set-key (kbd "S-C-<right>") 'enlarge-window-horizontally)
-(global-set-key (kbd "S-C-<down>") 'shrink-window)
-(global-set-key (kbd "S-C-<up>") 'enlarge-window)
 
 (setq scroll-preserve-screen-position 1)
 (global-set-key (kbd "M-n") (kbd "C-u 1 C-v"))
@@ -61,7 +55,20 @@
 (global-set-key (kbd "M-g") 'goto-line)
 (global-set-key (kbd "<f9>") 'linum-mode)
 
+;;better buffer switching
+(global-set-key (kbd "C-x C-b") 'ibuffer)
+(setq ibuffer-expert t)
+(global-set-key (kbd "C-x b") 'ido-switch-buffer)
+
+;; Comment region is bound per default to C-c C-c.
+;; uncomment-region is not bound to any key per default.
 (add-hook 'prog-mode-hook (lambda () (local-set-key (kbd "C-c C-v") 'uncomment-region)))
+
+;; rebind backspace to C-h to save my pinky
+(global-set-key (kbd "<f1>") 'help-command)
+(global-set-key (kbd "C-h") 'backward-delete-char)
+(global-set-key (kbd "M-h") 'backward-kill-word)
+
 
 (setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
       backup-by-copying t    ; Don't delink hardlinks
@@ -74,18 +81,31 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Font and theme setup ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(set-frame-parameter (selected-frame) 'alpha '(85 . 50))
-(add-to-list 'default-frame-alist '(alpha . (85 . 50)))
+;;(set-frame-parameter (selected-frame) 'alpha '(85 . 50))
+;;(add-to-list 'default-frame-alist '(alpha . (85 . 50)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(default ((t (:height 130 :family "Hack")))))
-(use-package dracula-theme
+;; (use-package dracula-theme
+;;   :ensure t
+;;   :init
+;;   (load-theme 'dracula t))
+(use-package spacemacs-theme
+  :defer t
   :ensure t
-  :init
-  (load-theme 'dracula t))
+  :init (load-theme 'spacemacs-dark t))
+
+(use-package spaceline
+  :ensure t
+  :config
+  (require 'spaceline-config)
+  (setq powerline-default-separator 'arrow)
+  (spaceline-spacemacs-theme)
+  (powerline-reset))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; rainbow-delimiter mode setup ;;;
@@ -98,10 +118,32 @@
   (add-hook 'emacs-lisp-mode-hook #'rainbow-delimiters-mode)
   )
 
+;;;;;;;;;;;;;;;;;;;;;;
+;;; ido-mode setup ;;;
+;;;;;;;;;;;;;;;;;;;;;;
+(setq ido-enable-flex-matching nil)
+(setq ido-create-new-buffer 'always)
+(setq ido-everywhere t)
+(ido-mode 1)
+(use-package ido-vertical-mode
+  :ensure t
+  :init
+  (ido-vertical-mode 1)
+  (setq ido-vertical-define-keys 'C-n-and-C-p-only))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Misc package setup ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 (winner-mode 1)
+
+
+;;; if xclip is installed we can connect the emacs kill-ring to X11
+(when (not (eq (executable-find "xclip") nil))
+  (use-package xclip
+    :ensure t
+    :init
+    (xclip-mode 1)))
+
 
 (use-package cmake-mode
   :ensure t
@@ -139,17 +181,19 @@
 (use-package web-mode
   :ensure t)
 
+;;;;;;;;;;;;;;;;;;;;;;;;
+;;; ace-window setup ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;
+(use-package ace-window
+  :ensure t
+  :init
+  (global-set-key (kbd "M-o") 'ace-window)
+  (global-set-key (kbd "C-x o") 'ace-window)
+  )
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; gist and required packages ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(use-package tabulated-list
-  :ensure t)
-(use-package gh
-  :ensure t)
-(use-package pcache
-  :ensure t)
-(use-package logito
-  :ensure t)
 (use-package gist
   :after (tabulated-list gh pcache logito)
   :ensure t)
@@ -180,13 +224,17 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; irony-mode setup ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
-
+;; I dont want to enable irony in modes derived from c-mode such as glsl-mode
+(defun my-irony-mode-hook ()
+  (when (or (eq major-mode 'c++-mode) (eq major-mode 'c-mode))
+      (setq irony-additional-clang-options '("-std=c++17"))
+      (irony-mode 1)))
 (when has-clang
   (use-package irony
     :ensure t
     :init
-    (add-hook 'c++-mode-hook 'irony-mode)
-    (add-hook 'c-mode-hook 'irony-mode)
+    (add-hook 'c++-mode-hook 'my-irony-mode-hook)
+    (add-hook 'c-mode-hook 'my-irony-mode-hook)
     (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
     (add-hook 'irony-mode-hook #'irony-eldoc)
     )
@@ -221,16 +269,18 @@
          company-echo-metadata-frontend))
   (setq company-idle-delay 0)
   (setq company-async-timeout 5)
-  (setq company-minimum-prefix-length 2))
+  (setq company-minimum-prefix-length 2)
+  (local-key-binding (kbd "<tab>") 'company-indent-or-complete-common)
+  (local-key-binding (kbd "TAB") 'company-indent-or-complete-common))
 
 
 (defun my-company-c-mode-hook ()
   "Setup company-backends list for c and c++.
 Emacs cant use company-irony if clang is not installed."
-  (if (not has-clang)
-      (set (make-local-variable 'company-backends) '(company-c-headers
-                                                     company-files))
-    (set (make-local-variable 'company-backends) '(company-irony))))
+      (if (not has-clang)
+          (set (make-local-variable 'company-backends) '(company-c-headers
+                                                         company-files))
+        (set (make-local-variable 'company-backends) '(company-irony))))
 
 (defun my-company-glsl-mode-hook ()
   "Setup company-backends list for glsl."
@@ -244,15 +294,15 @@ Emacs cant use company-irony if clang is not installed."
 (use-package company
   :ensure t
   :init
-  (add-hook 'after-init-hook 'global-company-mode)
-  (add-hook 'after-init-hook 'my-company-mode-hook)
+  (add-hook 'prog-mode-hook 'company-mode)
+  (add-hook 'prog-mode-hook 'my-company-mode-hook)
   (add-hook 'c++-mode-hook 'my-company-c-mode-hook)
   (add-hook 'c-mode-hook 'my-company-c-mode-hook)
   (add-hook 'glsl-mode-hook 'my-company-glsl-mode-hook)
   (add-hook 'python-mode-hook 'my-company-python-mode-hook)
   :bind
-  ("<tab>" . company-indent-or-complete-common)
-  ("TAB" . company-indent-or-complete-common)
+  ;;("<tab>" . company-indent-or-complete-common)
+  ;;("TAB" . company-indent-or-complete-common)
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;
@@ -318,6 +368,7 @@ Emacs cant use company-irony if clang is not installed."
   ("C-c n" . mc/mark-next-like-this)
   ("C-c p" . mc/mark-previous-like-this)
   ("C-c a" . mc/mark-all-like-this)
+  ("C-c q" . mc/mark-next-like-this)
   ;;("C-S-c C-S-c" . mc/edit-lines)
   )
 
@@ -330,9 +381,20 @@ Emacs cant use company-irony if clang is not installed."
   :init
     (add-hook 'prog-mode-hook #'ws-butler-mode))
 
+;;;;;;;;;;;;;;;;;;;;;;
+;;; org-mode setup ;;;
+;;;;;;;;;;;;;;;;;;;;;;
+;; I don't know what this does and im not even sure it has to do with org mode
+(use-package org-bullets
+  :ensure t
+  :init
+  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
 (put 'upcase-region 'disabled nil)
-(setq org-latex-pdf-process '("pdflatex -interaction nonstopmode %f" "biber %b" "pdflatex -interaction nonstopmode %f" "pdflatex -interaction nonstopmode --synctex=-1 %f"))
+(setq org-latex-pdf-process
+      '("pdflatex -interaction nonstopmode %f" \
+        "biber %b" "pdflatex -interaction nonstopmode %f" \
+        "pdflatex -interaction nonstopmode --synctex=-1 %f"))
 
 (setq-default indent-tabs-mode nil)
 (custom-set-variables
@@ -340,6 +402,9 @@ Emacs cant use company-irony if clang is not installed."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   (quote
+    ("bffa9739ce0752a37d9b1eee78fc00ba159748f50dc328af4be661484848e476" default)))
  '(package-selected-packages
    (quote
     (use-package company-rtags cmake-mode lua-mode smart-mode-line google-this writegood-mode git-timemachine ## rainbow-delimiters emojify apropospriate-theme dracula-theme zenburn-theme wrap-region web-mode w3m sr-speedbar speed-type solarized-theme slime relative-line-numbers powerline-evil php-mode pddl-mode nyan-mode multiple-cursors matlab-mode magit js2-mode java-snippets golint go-mode glsl-mode git-rebase-mode git-commit-mode flymake-go flycheck-haskell flycheck-color-mode-line fancy-battery erlang company column-marker color-theme-solarized clojure-mode ac-ispell ac-clang ac-c-headers))))
