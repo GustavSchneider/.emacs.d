@@ -18,7 +18,7 @@
   #+END_SRC
 ** use-package
   The configuration relies heavily on use-package to ensure packages
-  is installed automatically. The following code ensures that
+  are installed automatically. The following code ensures that
   use-package is installed automatically aswell.
 #+BEGIN_SRC emacs-lisp
   (unless (package-installed-p 'use-package)
@@ -26,31 +26,6 @@
            (package-refresh-contents)
            (package-install 'use-package)))
   (require 'use-package)
-#+END_SRC
-** style
-*** misc
-#+BEGIN_SRC emacs-lisp
-  (menu-bar-mode -1) ;; no menu bar
-  (tool-bar-mode -1) ;; no tool bar
-  (scroll-bar-mode -1) ;; no scrollbar
-  (setq inhibit-startup-screen t)
-  (setq inhibit-startup-message t)
-  (defalias 'yes-or-no-p 'y-or-n-p)
-#+END_SRC
-*** theme
-#+BEGIN_SRC emacs-lisp
-  (use-package spacemacs-theme
-    :defer t
-    :ensure t
-    :init (load-theme 'spacemacs-dark t))
-
-  (use-package spaceline
-    :ensure t
-    :config
-    (require 'spaceline-config)
-    (setq powerline-default-separator 'arrow)
-    (spaceline-spacemacs-theme)
-    (powerline-reset))
 #+END_SRC
 ** defaults
 *** backup
@@ -96,8 +71,9 @@
        (interactive (list my-shell)))
      (ad-activate 'ansi-term)
      (global-set-key (kbd "s-t") 'ansi-term)
+
    #+END_SRC
-** config file bindings
+** config file key bindings
    #+BEGIN_SRC emacs-lisp
      (defun open-config ()
        (interactive)
@@ -110,7 +86,7 @@
      (global-set-key (kbd "<f6>") 'open-config)
      (global-set-key (kbd "<f7>") 'reload-config)
    #+END_SRC
-** default key bindings
+* key bindings
 *** scroll-preserve-screen-position
     Scroll but keep cursor at the same relative offset in the buffer.
     #+BEGIN_SRC emacs-lisp
@@ -146,6 +122,31 @@
      (global-set-key (kbd "<f1>") 'help-command) ;; I needed this key for delete
      #+END_SRC
 * Visual
+** style
+*** misc
+#+BEGIN_SRC emacs-lisp
+  (menu-bar-mode -1) ;; no menu bar
+  (tool-bar-mode -1) ;; no tool bar
+  (scroll-bar-mode -1) ;; no scrollbar
+  (setq inhibit-startup-screen t)
+  (setq inhibit-startup-message t)
+  (defalias 'yes-or-no-p 'y-or-n-p)
+#+END_SRC
+*** theme
+#+BEGIN_SRC emacs-lisp
+  (use-package spacemacs-theme
+    :defer t
+    :ensure t
+    :init (load-theme 'spacemacs-dark t))
+
+  (use-package spaceline
+    :ensure t
+    :config
+    (require 'spaceline-config)
+    (setq powerline-default-separator 'arrow)
+    (spaceline-spacemacs-theme)
+    (powerline-reset))
+#+END_SRC
 ** rainbow-delimiters 
 #+BEGIN_SRC emacs-lisp
   (use-package rainbow-delimiters
@@ -186,7 +187,7 @@
     (ido-vertical-mode 1)
     (setq ido-vertical-define-keys 'C-n-and-C-p-only))
 #+END_SRC
-** sr-speedbar
+p** sr-speedbar
 #+BEGIN_SRC emacs-lisp
   (use-package sr-speedbar
     :ensure t
@@ -199,6 +200,15 @@
     :ensure t
     :bind
     ("M-s" . 'avy-goto-char))
+#+END_SRC
+** ace-window
+#+BEGIN_SRC emacs-lisp
+  (use-package ace-window
+    :ensure t
+    :init
+    (global-set-key (kbd "M-o") 'ace-window)
+    (global-set-key (kbd "C-x o") 'ace-window)
+    )
 #+END_SRC
 * Editing
 ** multiple-cursors
@@ -243,7 +253,7 @@
            :ensure t
            ))
    #+END_SRC
-* Programming
+* Auto completion
 ** yasnippet
 #+BEGIN_SRC emacs-lisp
   (use-package yasnippet-snippets
@@ -334,6 +344,7 @@
        (add-hook 'glsl-mode-hook 'my-company-glsl-mode-hook)
        (add-hook 'python-mode-hook 'my-company-python-mode-hook))
    #+END_SRC
+
 ** flycheck
 #+BEGIN_SRC emacs-lisp
      (use-package flycheck
@@ -357,25 +368,25 @@
       (flycheck-clang-analyzer-setup)
       ))
 #+END_SRC
-** modes
-*** glsl-mode
+* Programming
+** glsl-mode
 #+BEGIN_SRC emacs-lisp
   (use-package glsl-mode
     :ensure t
     )
 #+END_SRC
-*** cake-mode 
+** cake-mode 
     #+BEGIN_SRC emacs-lisp
       (use-package cmake-mode
         :ensure t
         )
     #+END_SRC
-*** web-mode
+** web-mode
 #+BEGIN_SRC emacs-lisp
   (use-package web-mode
     :ensure t)
 #+END_SRC
-*** c++-mode
+** c++-mode
     #+BEGIN_SRC emacs-lisp
       (defconst my-c++-style
         '((c-basic-offset   . 4)
