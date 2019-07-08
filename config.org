@@ -113,6 +113,7 @@
     Comment region is bound per default to C-c C-c. uncomment-region is
     not bound to any key per default.
 #+BEGIN_SRC emacs-lisp
+  (add-hook 'prog-mode-hook (lambda () (local-set-key (kbd "C-c C-c") 'comment-region)))
   (add-hook 'prog-mode-hook (lambda () (local-set-key (kbd "C-c C-v") 'uncomment-region)))
 #+END_SRC
 *** backward delete 
@@ -147,14 +148,18 @@
     :ensure t
     :init (load-theme 'spacemacs-dark t))
 
-  (use-package spaceline
+  (use-package doom-modeline
     :ensure t
-    :config
-    (require 'spaceline-config)
-    (setq powerline-default-separator 'arrow)
-    (spaceline-spacemacs-theme)
-    (powerline-reset)
-    (display-time-mode 1))
+    :custom
+    (doom-modeline-height 15)
+    (doom-modeline-minor-modes t)
+    :hook
+    (after-init . doom-modeline-mode))
+
+  (use-package fancy-battery
+    :ensure t
+    :defer t
+    :hook (after-init . fancy-battery-mode))
 #+END_SRC
 ** rainbow-delimiters 
 #+BEGIN_SRC emacs-lisp
@@ -168,26 +173,20 @@
 #+END_SRC
 ** centered-window
 #+BEGIN_SRC emacs-lisp
-  (use-package centered-window
-    :ensure t
-    :init
-    (setq cwm-centered-window-width 100)
-    (centered-window-mode t)
-    )
-#+END_SRC
-** Smooth Scrolling
-#+BEGIN_SRC emacs-lisp
-  (use-package smooth-scrolling
-    :ensure t
-    :init
-    (smooth-scrolling-mode 1)
-    )
+  ;; (use-package centered-window
+  ;;   :ensure t
+  ;;   :defer t
+  ;;   :init
+  ;;   (setq cwm-centered-window-width 100)
+  ;;   (centered-window-mode t)
+  ;;   )
 #+END_SRC
 ** markdown
-   #+BEGIN_SRC emacs-lisp
-     (use-package gh-md
-       :ensure t)
-   #+END_SRC
+#+BEGIN_SRC emacs-lisp
+  (use-package gh-md
+    :ensure t
+    :defer t)
+#+END_SRC
 * Navigation
 ** ido-mode
 #+BEGIN_SRC emacs-lisp
@@ -205,6 +204,7 @@ p** sr-speedbar
 #+BEGIN_SRC emacs-lisp
   (use-package sr-speedbar
     :ensure t
+    :defer t
     :bind ([f5] . sr-speedbar-toggle)
     )
 #+END_SRC
@@ -220,9 +220,9 @@ p** sr-speedbar
   (use-package ace-window
     :ensure t
     :init
-    (global-set-key (kbd "M-o") 'ace-window)
-    (global-set-key (kbd "C-x o") 'ace-window)
-    )
+    (setq aw-dispatch-always t)
+    :bind
+    ("M-o" . 'ace-window))
 #+END_SRC
 * Editing
 ** multiple-cursors
@@ -254,7 +254,7 @@ p** sr-speedbar
 #+BEGIN_SRC emacs-lisp
   (use-package ws-butler
     :ensure t
-    :defer
+    :defer t
     :init
       (add-hook 'prog-mode-hook #'ws-butler-mode))
 #+END_SRC
@@ -270,43 +270,48 @@ p** sr-speedbar
 #+END_SRC
 ** Hydra
    #+BEGIN_SRC emacs-lisp
-	  (use-package hydra     
-	    :ensure t
-	    :after key-chord
-	    :init
-	     (defhydra hydra-multiple-cursors ()	
-	       "multiple cursrors"
-	       ("n" mc/mark-next-like-this "next")
-	       ("p" mc/mark-previous-like-this "prev")
-	       ("q" nil "quit"))
-	     ;;(key-chord-define-global "hh" 'hydra-multiple-cursors/body)
-	     :bind
-	     ("C-c n" . hydra-multiple-cursors/body)
-     )
+     (use-package hydra     
+       :ensure t
+       :defer t
+       :after key-chord
+       :init
+       (defhydra hydra-multiple-cursors ()	
+	 "multiple cursrors"
+	 ("n" mc/mark-next-like-this "next")
+	 ("p" mc/mark-previous-like-this "prev")
+	 ("q" nil "quit"))
+       ;;(key-chord-define-global "hh" 'hydra-multiple-cursors/body)
+       :bind
+       ("C-c n" . hydra-multiple-cursors/body)
+       )
    #+END_SRC
 * Version control
-** magit
+** Magit
    #+BEGIN_SRC emacs-lisp
      ;; KTH has a way to old emacs version
      (when (>= emacs-major-version 25)
          (use-package magit
            :ensure t
+	   :defer t
            ))
    #+END_SRC
 * Auto completion
 ** yasnippet
 #+BEGIN_SRC emacs-lisp
-  (use-package yasnippet-snippets
-    :ensure t) 
+  (use-package yasnippet
+    :ensure t
+    :defer t
+    :init
+    (yas-global-mode 1))
 #+END_SRC
-   #+BEGIN_SRC emacs-lisp
-     (use-package yasnippet
-       :ensure t
-       :init
-       (setq yas-snippet-dirs (append yas-snippet-dirs '("~/.emacs.d/snippets")))
-       (yas-global-mode 1)
-       )
-   #+END_SRC
+#+BEGIN_SRC emacs-lisp
+  (use-package yasnippet-snippets
+    :ensure t
+    :defer t
+    :after (yasnippet)
+    :init
+    (setq yas-snippet-dirs (append yas-snippet-dirs '("~/.emacs.d/snippets")))) 
+#+END_SRC
 ** irony
 #+BEGIN_SRC emacs-lisp
   (defun my-irony-mode-hook ()
@@ -316,92 +321,100 @@ p** sr-speedbar
   (when has-clang
     (use-package irony
       :ensure t
+      :defer t
       :init
       (add-hook 'c++-mode-hook 'my-irony-mode-hook)
       (add-hook 'c-mode-hook 'my-irony-mode-hook)
       (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
       (add-hook 'irony-mode-hook #'irony-eldoc)
       )
-    (use-package irony-eldoc
-      :ensure t)
+    (use-package irony-eldoc    
+      :ensure t      
+      :after (irony))
     (use-package company-irony
-      :ensure t)
+      :ensure t
+      :after (irony))
     (use-package flycheck-irony
-      :ensure t))
+      :ensure t
+      :after (irony)))
 #+END_SRC
 ** company
-   #+BEGIN_SRC emacs-lisp
-     (use-package company-c-headers
-       :ensure t)
-     (use-package company-glsl
-       :ensure t)
-     (use-package company-jedi
-       :ensure t)
+#+BEGIN_SRC emacs-lisp
+  (use-package company-c-headers
+    :ensure t
+    :after (company))
+  (use-package company-glsl
+    :ensure t
+    :after (company))
+  (use-package company-jedi
+    :ensure t
+    :after (company))
 
-     (defun my-company-visible-and-explicit-action-p ()
-	 (and (company-tooltip-visible-p)
-	      (company-explicit-action-p)))
-     (defun my-company-mode-hook ()
-       "Setting up company-mode."
-       (setq company-require-match 'never)
-       (setq company-auto-complete
-	    #'my-company-visible-and-explicit-action-p)
-       (setq company-frontends
-	    '(company-pseudo-tooltip-unless-just-one-frontend
-	      company-preview-frontend
-	      company-echo-metadata-frontend))
-       (setq company-idle-delay 0)
-       (setq company-async-timeout 5)
-       (setq company-minimum-prefix-length 2)
-       (local-key-binding (kbd "<tab>") 'company-indent-or-complete-common)
-       (local-key-binding (kbd "TAB") 'company-indent-or-complete-common))
+  (defun my-company-visible-and-explicit-action-p ()
+    (and (company-tooltip-visible-p)
+	 (company-explicit-action-p)))
+  (defun my-company-mode-hook ()
+    "Setting up company-mode."
+    (setq company-require-match 'never)
+    (setq company-auto-complete
+	  #'my-company-visible-and-explicit-action-p)
+    (setq company-frontends
+	  '(company-pseudo-tooltip-unless-just-one-frontend
+	    company-preview-frontend
+	    company-echo-metadata-frontend))
+    (setq company-idle-delay 0)
+    (setq company-async-timeout 5)
+    (setq company-minimum-prefix-length 2)
+    (local-key-binding (kbd "<tab>") 'company-indent-or-complete-common)
+    (local-key-binding (kbd "TAB") 'company-indent-or-complete-common))
 
-     (defun my-company-c-mode-hook ()
-       "Setup company-backends list for c and c++.
-     Emacs cant use company-irony if clang is not installed."
-	   (if (not has-clang)
-	       (set (make-local-variable 'company-backends) '(company-c-headers
-							      company-files))
-	     (set (make-local-variable 'company-backends) '(company-irony))))
+  (defun my-company-c-mode-hook ()
+    "Setup company-backends list for c and c++.
+  Emacs cant use company-irony if clang is not installed."
+    (if (not has-clang)
+	(set (make-local-variable 'company-backends) '(company-c-headers
+						       company-files))
+      (set (make-local-variable 'company-backends) '(company-irony))))
 
-     (defun my-company-glsl-mode-hook ()
-       "Setup company-backends list for glsl."
-       (set (make-local-variable 'company-backends) '(company-glsl)))
+  (defun my-company-glsl-mode-hook ()
+    "Setup company-backends list for glsl."
+    (set (make-local-variable 'company-backends) '(company-glsl)))
 
-     (defun my-company-python-mode-hook ()
-       "Setup company-backends list for python."
-       (set (make-local-variable 'company-backends) '(company-jedi
-						     company-files)))
-     (use-package company
-       :ensure t
-       :init
-       (add-hook 'prog-mode-hook 'company-mode)
-       (add-hook 'prog-mode-hook 'my-company-mode-hook)
-       (add-hook 'c++-mode-hook 'my-company-c-mode-hook)
-       (add-hook 'c-mode-hook 'my-company-c-mode-hook)
-       (add-hook 'glsl-mode-hook 'my-company-glsl-mode-hook)
-       (add-hook 'python-mode-hook 'my-company-python-mode-hook))
-   #+END_SRC
+  (defun my-company-python-mode-hook ()
+    "Setup company-backends list for python."
+    (set (make-local-variable 'company-backends) '(company-jedi
+						   company-files)))
+  (use-package company
+    :ensure t
+    :init
+    (add-hook 'prog-mode-hook 'company-mode)
+    (add-hook 'prog-mode-hook 'my-company-mode-hook)
+    (add-hook 'c++-mode-hook 'my-company-c-mode-hook)
+    (add-hook 'c-mode-hook 'my-company-c-mode-hook)
+    (add-hook 'glsl-mode-hook 'my-company-glsl-mode-hook)
+    (add-hook 'python-mode-hook 'my-company-python-mode-hook))
+#+END_SRC
 
 ** flycheck
 #+BEGIN_SRC emacs-lisp
-     (use-package flycheck
-       :ensure t
-       :init
-       (add-hook 'after-init-hook #'global-flycheck-mode)
-       (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++17")))
-       (add-hook 'c++-mode-hook (lambda () (setq flycheck-clang-language-standard "c++17")))
-       (when has-clang (add-hook 'flycheck-mode-hook #'flycheck-irony-setup)))
+  (use-package flycheck
+    :ensure t
+    :init
+    (add-hook 'after-init-hook #'global-flycheck-mode)
+    (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++17")))
+    (add-hook 'c++-mode-hook (lambda () (setq flycheck-clang-language-standard "c++17")))
+    (when has-clang (add-hook 'flycheck-mode-hook #'flycheck-irony-setup)))
 #+END_SRC
 #+BEGIN_SRC emacs-lisp
-(use-package flycheck-color-mode-line
-  :ensure t)
+  (use-package flycheck-color-mode-line
+    :ensure t)
 #+END_SRC
 #+BEGIN_SRC emacs-lisp
   (when has-clang
     (use-package flycheck-clang-analyzer
       :after (flycheck)
       :ensure t
+      :defer t
       :init
       (flycheck-clang-analyzer-setup)
       ))
@@ -411,18 +424,19 @@ p** sr-speedbar
 #+BEGIN_SRC emacs-lisp
   (use-package glsl-mode
     :ensure t
-    )
+    :defer t)
 #+END_SRC
 ** cake-mode 
     #+BEGIN_SRC emacs-lisp
       (use-package cmake-mode
-        :ensure t
-        )
+	:ensure t
+	:defer t)
     #+END_SRC
 ** web-mode
 #+BEGIN_SRC emacs-lisp
   (use-package web-mode
-    :ensure t)
+    :ensure t
+    :defer t)
 #+END_SRC
 ** c++-mode
     #+BEGIN_SRC emacs-lisp
@@ -447,6 +461,7 @@ Changes the default dots to unicode characters
 #+BEGIN_SRC emacs-lisp
   (use-package org-bullets
     :ensure t
+    :defer t
     :init
     (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 #+END_SRC
