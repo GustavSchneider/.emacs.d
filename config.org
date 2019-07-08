@@ -3,9 +3,9 @@
    #+BEGIN_SRC emacs-lisp
      (require 'package)
      (add-to-list 'package-archives
-                  '("melpa" . "http://melpa.milkbox.net/packages/") t)
+		  '("melpa" . "http://melpa.milkbox.net/packages/") t)
      (add-to-list 'package-archives
-                  '("marmelade" . "http://marmalade-repo.org/packages/") t)
+		  '("marmelade" . "http://marmalade-repo.org/packages/") t)
      (package-initialize)
      (setq url-http.attempt-keepalives nil)
      (add-to-list 'load-path "~/.emacs.d/elpa/")
@@ -26,6 +26,13 @@
            (package-refresh-contents)
            (package-install 'use-package)))
   (require 'use-package)
+#+END_SRC
+** auto-compile
+#+BEGIN_SRC emacs-lisp
+    (setq load-prefer-newer t)
+    (use-package auto-compile
+      :ensure t
+      :config (auto-compile-on-load-mode))
 #+END_SRC
 ** defaults
 *** backup
@@ -117,9 +124,10 @@
     #+END_SRC
 *** misc
      #+BEGIN_SRC emacs-lisp
-     (global-set-key (kbd "M-g") 'goto-line) 
-     (global-set-key (kbd "<f9>") 'linum-mode) ;; show line number
-     (global-set-key (kbd "<f1>") 'help-command) ;; I needed this key for delete
+       (global-set-key (kbd "M-g") 'goto-line) 
+       (global-set-key (kbd "<f9>") 'linum-mode) ;; show line number
+       (global-set-key (kbd "<f1>") 'help-command) ;; I needed this key for delete
+       (global-set-key (kbd "C-<tab>") 'bury-buffer)
      #+END_SRC
 * Visual
 ** style
@@ -145,7 +153,8 @@
     (require 'spaceline-config)
     (setq powerline-default-separator 'arrow)
     (spaceline-spacemacs-theme)
-    (powerline-reset))
+    (powerline-reset)
+    (display-time-mode 1))
 #+END_SRC
 ** rainbow-delimiters 
 #+BEGIN_SRC emacs-lisp
@@ -174,6 +183,11 @@
     (smooth-scrolling-mode 1)
     )
 #+END_SRC
+** markdown
+   #+BEGIN_SRC emacs-lisp
+     (use-package gh-md
+       :ensure t)
+   #+END_SRC
 * Navigation
 ** ido-mode
 #+BEGIN_SRC emacs-lisp
@@ -216,8 +230,8 @@ p** sr-speedbar
   (use-package multiple-cursors
     :ensure t
     :bind
-    ("C-c n" . mc/mark-next-like-this)
-    ("C-c p" . mc/mark-previous-like-this)
+    ;;("C-c n" . mc/mark-next-like-this)
+    ;;("C-c p" . mc/mark-previous-like-this)
     ("C-c a" . mc/mark-all-like-this)
     ("C-c q" . mc/mark-next-like-this)
     ;;("C-S-c C-S-c" . mc/edit-lines)
@@ -244,6 +258,32 @@ p** sr-speedbar
     :init
       (add-hook 'prog-mode-hook #'ws-butler-mode))
 #+END_SRC
+** key-chord
+#+BEGIN_SRC emacs-lisp
+    (use-package key-chord
+      :ensure t
+      :init
+      (progn
+       ;;(setq 'key-chord-one-key-delay 0.16)
+	(key-chord-mode 1)
+	(key-chord-define-global "uu" 'undo)))
+#+END_SRC
+** Hydra
+   #+BEGIN_SRC emacs-lisp
+	  (use-package hydra     
+	    :ensure t
+	    :after key-chord
+	    :init
+	     (defhydra hydra-multiple-cursors ()	
+	       "multiple cursrors"
+	       ("n" mc/mark-next-like-this "next")
+	       ("p" mc/mark-previous-like-this "prev")
+	       ("q" nil "quit"))
+	     ;;(key-chord-define-global "hh" 'hydra-multiple-cursors/body)
+	     :bind
+	     ("C-c n" . hydra-multiple-cursors/body)
+     )
+   #+END_SRC
 * Version control
 ** magit
    #+BEGIN_SRC emacs-lisp
@@ -299,31 +339,30 @@ p** sr-speedbar
        :ensure t)
 
      (defun my-company-visible-and-explicit-action-p ()
-         (and (company-tooltip-visible-p)
-              (company-explicit-action-p)))
+	 (and (company-tooltip-visible-p)
+	      (company-explicit-action-p)))
      (defun my-company-mode-hook ()
        "Setting up company-mode."
        (setq company-require-match 'never)
        (setq company-auto-complete
-            #'my-company-visible-and-explicit-action-p)
+	    #'my-company-visible-and-explicit-action-p)
        (setq company-frontends
-            '(company-pseudo-tooltip-unless-just-one-frontend
-              company-preview-frontend
-              company-echo-metadata-frontend))
+	    '(company-pseudo-tooltip-unless-just-one-frontend
+	      company-preview-frontend
+	      company-echo-metadata-frontend))
        (setq company-idle-delay 0)
        (setq company-async-timeout 5)
        (setq company-minimum-prefix-length 2)
        (local-key-binding (kbd "<tab>") 'company-indent-or-complete-common)
        (local-key-binding (kbd "TAB") 'company-indent-or-complete-common))
 
-
      (defun my-company-c-mode-hook ()
        "Setup company-backends list for c and c++.
      Emacs cant use company-irony if clang is not installed."
-           (if (not has-clang)
-               (set (make-local-variable 'company-backends) '(company-c-headers
-                                                              company-files))
-             (set (make-local-variable 'company-backends) '(company-irony))))
+	   (if (not has-clang)
+	       (set (make-local-variable 'company-backends) '(company-c-headers
+							      company-files))
+	     (set (make-local-variable 'company-backends) '(company-irony))))
 
      (defun my-company-glsl-mode-hook ()
        "Setup company-backends list for glsl."
@@ -332,8 +371,7 @@ p** sr-speedbar
      (defun my-company-python-mode-hook ()
        "Setup company-backends list for python."
        (set (make-local-variable 'company-backends) '(company-jedi
-                                                     company-files)))
-
+						     company-files)))
      (use-package company
        :ensure t
        :init
@@ -418,4 +456,8 @@ Emacs latex setup
         '("pdflatex -interaction nonstopmode %f \
            biber %b" "pdflatex -interaction nonstopmode %f \
            pdflatex -interaction nonstopmode --synctex=-1 %f"))
+#+END_SRC
+Larger latex fragments
+#+BEGIN_SRC emacs-lisp
+  (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
 #+END_SRC

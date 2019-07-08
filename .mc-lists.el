@@ -3,16 +3,27 @@
 
 (setq mc/cmds-to-run-for-all
       '(
-        c-electric-delete-forward
-        c-electric-semi&comma
-        org-beginning-of-line
-        org-delete-char
-        org-end-of-line
-        org-kill-line
-        org-return
-        org-self-insert-command
-        ))
+	backward-delete-char
+	c-electric-brace
+	c-electric-colon
+	c-electric-delete-forward
+	c-electric-lt-gt
+	c-electric-paren
+	c-electric-semi&comma
+	org-beginning-of-line
+	org-delete-char
+	org-end-of-line
+	org-kill-line
+	org-return
+	org-return-indent
+	org-self-insert-command
+	))
 
 (setq mc/cmds-to-run-once
       '(
-        ))
+	hydra-multiple-cursors/body
+	hydra-multiple-cursors/mc/mark-next-like-this
+	hydra-multiple-cursors/mc/mark-previous-like-this
+	hydra-multiple-cursors/nil
+	org-cycle
+	))
