@@ -261,30 +261,9 @@ p** sr-speedbar
 	 ("w" where-is "command")
 	 ("t" help-with-tutorial "tutorial")
 	 ("q" nil "quit"))  
-       (defhydra hydra-magit (:color pink
-                              :exit t)
-         "magit"
-	 ("s" magit-status "status")
-	 ("c" magit-checkout "checkout")
-	 ("d" magit-diff "diff")
-	 ("b" magit-branch "branch")
-	 ("m" magit-merge "merge")
-	 ("r" magit-rebase "rebase")
-	 ("1" magit-pull "pull")
-	 ("2" magit-push "push")
-	 ("l" magit-log "log")
-	 ("t" magit-tag "tag")
-	 ("p" magit-patch "patch")
-	 ("f" magit-fetch "fetch")
-	 ("r" magit-remote "remote")
-	 ("z" magit-stash "stash")
-	 ("x" magit-reset-quickly "reset")
-	 ("v" magit-revert "revert")
-	 ("a" magit-cherry-pick "cherry-pick"))
        :bind
        ("<f1>" . hydra-help/body)
-       ("<f2>" . hydra-zoom/body)
-       ("C-c m" . hydra-magit/body))
+       ("<f2>" . hydra-zoom/body))
    #+END_SRC
 ** multiple-cursors
 #+BEGIN_SRC emacs-lisp
@@ -332,10 +311,33 @@ p** sr-speedbar
    #+BEGIN_SRC emacs-lisp
      ;; KTH has a way to old emacs version
      (when (>= emacs-major-version 25)
-         (use-package magit
-           :ensure t
+	 (use-package magit
+	   :ensure t
+	   :after hydra
 	   :defer t
-           ))
+	   :init
+	   (defhydra hydra-magit (:color pink
+					 :exit t)
+	     "magit"
+	     ("s" magit-status "status")
+	     ("c" magit-checkout "checkout")
+	     ("d" magit-diff "diff")
+	     ("b" magit-branch "branch")
+	     ("m" magit-merge "merge")
+	     ("r" magit-rebase "rebase")
+	     ("1" magit-pull "pull")
+	     ("2" magit-push "push")
+	     ("l" magit-log "log")
+	     ("t" magit-tag "tag")
+	     ("p" magit-patch "patch")
+	     ("f" magit-fetch "fetch")
+	     ("r" magit-remote "remote")
+	     ("z" magit-stash "stash")
+	     ("x" magit-reset-quickly "reset")
+	     ("v" magit-revert "revert")
+	     ("a" magit-cherry-pick "cherry-pick"))
+	   :bind
+	   ("C-c m" . hydra-magit/body)))
    #+END_SRC
 * Auto completion
 ** yasnippet
