@@ -61,7 +61,7 @@
       (if (and (executable-find "xclip") (not window-system))
           (use-package xclip
             :ensure t
-            :init
+            :config
             (xclip-mode 1)))
     #+END_SRC
 ** flyspell
@@ -167,7 +167,7 @@
 #+BEGIN_SRC emacs-lisp
   (use-package rainbow-delimiters
     :ensure t
-    :init
+    :config
     (add-hook 'c-mode-hook #'rainbow-delimiters-mode)
     (add-hook 'c++-mode-hook #'rainbow-delimiters-mode)
     (add-hook 'emacs-lisp-mode-hook #'rainbow-delimiters-mode)
@@ -198,7 +198,7 @@
   (ido-mode 1)
   (use-package ido-vertical-mode
     :ensure t
-    :init
+    :config
     (ido-vertical-mode 1)
     (setq ido-vertical-define-keys 'C-n-and-C-p-only))
 #+END_SRC
@@ -221,7 +221,7 @@ p** sr-speedbar
 #+BEGIN_SRC emacs-lisp
   (use-package ace-window
     :ensure t
-    :init
+    :config
     (setq aw-dispatch-always t)
     :bind
     ("M-o" . 'ace-window))
@@ -231,7 +231,7 @@ p** sr-speedbar
 #+BEGIN_SRC emacs-lisp
     (use-package key-chord
       :ensure t
-      :init
+      :config
       (progn
        ;;(setq 'key-chord-one-key-delay 0.16)
 	(key-chord-mode 1)
@@ -243,7 +243,7 @@ p** sr-speedbar
        :ensure t
        :defer t
        :after key-chord
-       :init
+       :config
        (defhydra hydra-zoom ()
 	 "zoom"
 	 ("g" text-scale-increase "in")
@@ -269,8 +269,9 @@ p** sr-speedbar
 #+BEGIN_SRC emacs-lisp
   (use-package multiple-cursors
     :ensure t
+    :defer t
     :after hydra
-    :init
+    :config
     (defhydra hydra-multiple-cursors (:color pink)	
       "multiple cursrors"
       ("n" mc/mark-next-like-this "next")
@@ -303,7 +304,7 @@ p** sr-speedbar
   (use-package ws-butler
     :ensure t
     :defer t
-    :init
+    :config
       (add-hook 'prog-mode-hook #'ws-butler-mode))
 #+END_SRC
 * Version control
@@ -315,7 +316,7 @@ p** sr-speedbar
 	   :ensure t
 	   :after hydra
 	   :defer t
-	   :init
+	   :config
 	   (defhydra hydra-magit (:color pink
 					 :exit t)
 	     "magit"
@@ -345,7 +346,7 @@ p** sr-speedbar
   (use-package yasnippet
     :ensure t
     :defer t
-    :init
+    :config
     (yas-global-mode 1))
 #+END_SRC
 #+BEGIN_SRC emacs-lisp
@@ -353,7 +354,7 @@ p** sr-speedbar
     :ensure t
     :defer t
     :after (yasnippet)
-    :init
+    :config
     (setq yas-snippet-dirs (append yas-snippet-dirs '("~/.emacs.d/snippets")))) 
 #+END_SRC
 ** irony
@@ -366,7 +367,7 @@ p** sr-speedbar
     (use-package irony
       :ensure t
       :defer t
-      :init
+      :config
       (add-hook 'c++-mode-hook 'my-irony-mode-hook)
       (add-hook 'c-mode-hook 'my-irony-mode-hook)
       (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
@@ -430,7 +431,7 @@ p** sr-speedbar
 						   company-files)))
   (use-package company
     :ensure t
-    :init
+    :config
     (add-hook 'prog-mode-hook 'company-mode)
     (add-hook 'prog-mode-hook 'my-company-mode-hook)
     (add-hook 'c++-mode-hook 'my-company-c-mode-hook)
@@ -443,7 +444,7 @@ p** sr-speedbar
 #+BEGIN_SRC emacs-lisp
   (use-package flycheck
     :ensure t
-    :init
+    :config
     (add-hook 'after-init-hook #'global-flycheck-mode)
     (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++17")))
     (add-hook 'c++-mode-hook (lambda () (setq flycheck-clang-language-standard "c++17")))
@@ -459,7 +460,7 @@ p** sr-speedbar
       :after (flycheck)
       :ensure t
       :defer t
-      :init
+      :config
       (flycheck-clang-analyzer-setup)
       ))
 #+END_SRC
@@ -519,7 +520,7 @@ Changes the default dots to unicode characters
   (use-package org-bullets
     :ensure t
     :defer t
-    :init
+    :config
     (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 #+END_SRC
 Emacs latex setup
