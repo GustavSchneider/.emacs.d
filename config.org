@@ -151,10 +151,10 @@
     :ensure t
     :custom
     (doom-modeline-height 15)
-    (doom-modeline-minor-modes t)
+    ;;(doom-modeline-minor-modes t)
     ;;(doom-modeline-indent-info t)
     ;;(doom-modeline-enable-word-count t)
-    ;;(doom-modeline-buffer-encoding nil)
+    (doom-modeline-buffer-encoding nil)
     :hook
     (after-init . doom-modeline-mode))
 
@@ -266,6 +266,12 @@ p** sr-speedbar
          "magit"
 	 ("s" magit-status "status")
 	 ("c" magit-checkout "checkout")
+	 ("d" magit-diff "diff")
+	 ("b" magit-branch "branch")
+	 ("m" magit-merge "merge")
+	 ("r" magit-rebase "rebase")
+	 ("1" magit-pull "pull")
+	 ("2" magit-push "push")
 	 ("l" magit-log "log")
 	 )
        :bind

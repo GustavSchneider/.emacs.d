@@ -10,6 +10,8 @@
 	c-electric-lt-gt
 	c-electric-paren
 	c-electric-semi&comma
+	hydra-multiple-cursors/mc/edit-lines
+	hydra-multiple-cursors/mc/mark-more-like-this-extended
 	org-beginning-of-line
 	org-delete-char
 	org-end-of-line
@@ -24,6 +26,7 @@
 	hydra-multiple-cursors/body
 	hydra-multiple-cursors/mc/mark-next-like-this
 	hydra-multiple-cursors/mc/mark-previous-like-this
+	hydra-multiple-cursors/mc/skip-to-next-like-this
 	hydra-multiple-cursors/nil
 	org-cycle
 	))
