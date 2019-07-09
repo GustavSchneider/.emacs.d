@@ -94,14 +94,14 @@
      (global-set-key (kbd "<f7>") 'reload-config)
    #+END_SRC
 * key bindings
-*** scroll-preserve-screen-position
+** scroll-preserve-screen-position
     Scroll but keep cursor at the same relative offset in the buffer.
     #+BEGIN_SRC emacs-lisp
       (setq scroll-preserve-screen-position 1)
       (global-set-key (kbd "M-n") (kbd "C-u 1 C-v"))
       (global-set-key (kbd "M-p") (kbd "C-u 1 M-v"))
     #+END_SRC
-*** buffer switching
+** buffer switching
     Setup ido-switch buffer and ibuffer to be used instead of the
     default buffer menu which sucks.
 #+BEGIN_SRC emacs-lisp
@@ -109,25 +109,24 @@
   (setq ibuffer-expert t)
   (global-set-key (kbd "C-x b") 'ido-switch-buffer)
 #+END_SRC
-*** uncomment-region
+** uncomment-region
     Comment region is bound per default to C-c C-c. uncomment-region is
     not bound to any key per default.
 #+BEGIN_SRC emacs-lisp
   (add-hook 'prog-mode-hook (lambda () (local-set-key (kbd "C-c C-c") 'comment-region)))
   (add-hook 'prog-mode-hook (lambda () (local-set-key (kbd "C-c C-v") 'uncomment-region)))
 #+END_SRC
-*** backward delete 
+** backward delete 
      These binds are used to save my pinky during long programming
      sessions
     #+BEGIN_SRC emacs-lisp
       (global-set-key (kbd "C-h") 'backward-delete-char)
       (global-set-key (kbd "M-h") 'backward-kill-word)
     #+END_SRC
-*** misc
+** misc
      #+BEGIN_SRC emacs-lisp
        (global-set-key (kbd "M-g") 'goto-line) 
        (global-set-key (kbd "<f9>") 'linum-mode) ;; show line number
-       (global-set-key (kbd "<f1>") 'help-command) ;; I needed this key for delete
        (global-set-key (kbd "C-<tab>") 'bury-buffer)
      #+END_SRC
 * Visual
@@ -153,6 +152,9 @@
     :custom
     (doom-modeline-height 15)
     (doom-modeline-minor-modes t)
+    ;;(doom-modeline-indent-info t)
+    ;;(doom-modeline-enable-word-count t)
+    ;;(doom-modeline-buffer-encoding nil)
     :hook
     (after-init . doom-modeline-mode))
 
@@ -225,17 +227,71 @@ p** sr-speedbar
     ("M-o" . 'ace-window))
 #+END_SRC
 * Editing
+** key-chord
+#+BEGIN_SRC emacs-lisp
+    (use-package key-chord
+      :ensure t
+      :init
+      (progn
+       ;;(setq 'key-chord-one-key-delay 0.16)
+	(key-chord-mode 1)
+	(key-chord-define-global "uu" 'undo)))
+#+END_SRC
+** Hydra
+   #+BEGIN_SRC emacs-lisp
+     (use-package hydra     
+       :ensure t
+       :defer t
+       :after key-chord
+       :init
+       (defhydra hydra-zoom ()
+	 "zoom"
+	 ("g" text-scale-increase "in")
+	 ("l" text-scale-decrease "out"))
+       (defhydra hydra-help ()
+	 "help"
+	 ("b" describe-bindings "bindings")
+	 ("c" describe-key-briefly "key-briefly")
+	 ("k" describe-key "key")
+	 ("f" describe-function "function")
+	 ("m" describe-mode "mode")
+	 ("n" view-emacs-news "news")
+	 ("o" descibe-symbol "symbol")
+	 ("P" describe-package "package")
+	 ("w" where-is "command")
+	 ("t" help-with-tutorial "tutorial")
+	 ("q" nil "quit"))  
+       (defhydra hydra-magit (:color pink
+                              :exit t)
+         "magit"
+	 ("s" magit-status "status")
+	 ("c" magit-checkout "checkout")
+	 ("l" magit-log "log")
+	 )
+       :bind
+       ("<f1>" . hydra-help/body)
+       ("<f2>" . hydra-zoom/body)
+       ("C-c m" . hydra-magit/body))
+   #+END_SRC
 ** multiple-cursors
 #+BEGIN_SRC emacs-lisp
   (use-package multiple-cursors
     :ensure t
+    :after hydra
+    :init
+    (defhydra hydra-multiple-cursors (:color pink)	
+      "multiple cursrors"
+      ("n" mc/mark-next-like-this "next")
+      ("p" mc/mark-previous-like-this "prev")
+      ("a" mc/mark-all-like-this "all")
+      ("q" mc/sort-regions "sort")
+      ("r" mc/reverse-regions "reverse")
+      ("s" mc/skip-to-next-like-this "skip")
+      ("d" mc/edit-lines "edit-lines")
+      ("q" nil "quit"))
+      ;;(key-chord-define-global "hh" 'hydra-multiple-cursors/body)
     :bind
-    ;;("C-c n" . mc/mark-next-like-this)
-    ;;("C-c p" . mc/mark-previous-like-this)
-    ("C-c a" . mc/mark-all-like-this)
-    ("C-c q" . mc/mark-next-like-this)
-    ;;("C-S-c C-S-c" . mc/edit-lines)
-    )
+    ("C-c n" . hydra-multiple-cursors/body))
 #+END_SRC
 ** eval-and-replace
 #+BEGIN_SRC emacs-lisp
@@ -258,33 +314,6 @@ p** sr-speedbar
     :init
       (add-hook 'prog-mode-hook #'ws-butler-mode))
 #+END_SRC
-** key-chord
-#+BEGIN_SRC emacs-lisp
-    (use-package key-chord
-      :ensure t
-      :init
-      (progn
-       ;;(setq 'key-chord-one-key-delay 0.16)
-	(key-chord-mode 1)
-	(key-chord-define-global "uu" 'undo)))
-#+END_SRC
-** Hydra
-   #+BEGIN_SRC emacs-lisp
-     (use-package hydra     
-       :ensure t
-       :defer t
-       :after key-chord
-       :init
-       (defhydra hydra-multiple-cursors ()	
-	 "multiple cursrors"
-	 ("n" mc/mark-next-like-this "next")
-	 ("p" mc/mark-previous-like-this "prev")
-	 ("q" nil "quit"))
-       ;;(key-chord-define-global "hh" 'hydra-multiple-cursors/body)
-       :bind
-       ("C-c n" . hydra-multiple-cursors/body)
-       )
-   #+END_SRC
 * Version control
 ** Magit
    #+BEGIN_SRC emacs-lisp
@@ -456,6 +485,19 @@ p** sr-speedbar
       (add-hook 'c++-mode-hook 'my-c++-style-hook)
     #+END_SRC
 
+* Misc Modes
+** restclient
+#+BEGIN_SRC emacs-lisp
+  (use-package restclient
+    :ensure t
+    :defer t)
+#+END_SRC
+** sudo-edit
+#+BEGIN_SRC emacs-lisp
+  (use-package sudo-edit
+    :ensure t
+    :defer t)
+#+END_SRC
 * Org-mode
 Changes the default dots to unicode characters
 #+BEGIN_SRC emacs-lisp
