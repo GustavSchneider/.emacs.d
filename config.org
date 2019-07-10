@@ -133,7 +133,7 @@
 ** style
 *** misc
 #+BEGIN_SRC emacs-lisp
-  (menu-bar-mode -1) ;; no menu bar
+(menu-bar-mode -1) ;; no menu bar
   (tool-bar-mode -1) ;; no tool bar
   (scroll-bar-mode -1) ;; no scrollbar
   (setq inhibit-startup-screen t)
@@ -143,9 +143,12 @@
 *** theme
 #+BEGIN_SRC emacs-lisp
   (use-package spacemacs-theme
-    :defer t
     :ensure t
+    :defer t
     :init (load-theme 'spacemacs-dark t))
+
+  (use-package all-the-icons :ensure t)
+  (use-package all-the-icons-dired :ensure t)
 
   (use-package doom-modeline
     :ensure t
@@ -200,6 +203,7 @@
     :ensure t
     :config
     (ido-vertical-mode 1)
+    
     (setq ido-vertical-define-keys 'C-n-and-C-p-only))
 #+END_SRC
 p** sr-speedbar
@@ -221,8 +225,8 @@ p** sr-speedbar
 #+BEGIN_SRC emacs-lisp
   (use-package ace-window
     :ensure t
-    :config
-    (setq aw-dispatch-always t)
+    :custom
+    (aw-dispatch-always t)
     :bind
     ("M-o" . 'ace-window))
 #+END_SRC
@@ -353,7 +357,7 @@ p** sr-speedbar
   (use-package yasnippet-snippets
     :ensure t
     :defer t
-    :after (yasnippet)
+    :after yasnippet
     :config
     (setq yas-snippet-dirs (append yas-snippet-dirs '("~/.emacs.d/snippets")))) 
 #+END_SRC
@@ -375,25 +379,25 @@ p** sr-speedbar
       )
     (use-package irony-eldoc    
       :ensure t      
-      :after (irony))
+      :after irony)
     (use-package company-irony
       :ensure t
-      :after (irony))
+      :after irony)
     (use-package flycheck-irony
       :ensure t
-      :after (irony)))
+      :after irony))
 #+END_SRC
 ** company
 #+BEGIN_SRC emacs-lisp
   (use-package company-c-headers
     :ensure t
-    :after (company))
+    :after company)
   (use-package company-glsl
     :ensure t
-    :after (company))
+    :after company)
   (use-package company-jedi
     :ensure t
-    :after (company))
+    :after company)
 
   (defun my-company-visible-and-explicit-action-p ()
     (and (company-tooltip-visible-p)
@@ -429,15 +433,29 @@ p** sr-speedbar
     "Setup company-backends list for python."
     (set (make-local-variable 'company-backends) '(company-jedi
 						   company-files)))
+
+  (use-package company-emacs-eclim
+    :ensure t
+    :after company
+    :init (company-emacs-eclim-setup))
   (use-package company
     :ensure t
-    :config
+    :defer t
+    :init
     (add-hook 'prog-mode-hook 'company-mode)
     (add-hook 'prog-mode-hook 'my-company-mode-hook)
     (add-hook 'c++-mode-hook 'my-company-c-mode-hook)
     (add-hook 'c-mode-hook 'my-company-c-mode-hook)
     (add-hook 'glsl-mode-hook 'my-company-glsl-mode-hook)
-    (add-hook 'python-mode-hook 'my-company-python-mode-hook))
+    (add-hook 'python-mode-hook 'my-company-python-mode-hook)
+    :bind
+    (:map company-active-map
+	  ("C-n" . company-select-next)
+	  ("C-p" . company-select-previous))
+    (:map company-search-map
+	  ("C-n" . company-select-next)
+	  ("C-p" . company-select-previous)
+	  ("C-t" . company-search-toggle-filtering)))
 #+END_SRC
 
 ** flycheck
@@ -457,7 +475,7 @@ p** sr-speedbar
 #+BEGIN_SRC emacs-lisp
   (when has-clang
     (use-package flycheck-clang-analyzer
-      :after (flycheck)
+      :after flycheck
       :ensure t
       :defer t
       :config
@@ -501,6 +519,16 @@ p** sr-speedbar
       (add-hook 'c++-mode-hook 'my-c++-style-hook)
     #+END_SRC
 
+** Eclim
+#+BEGIN_SRC emacs-lisp
+  (use-package eclim
+    :ensure t
+    :custom 
+    (eclim-eclipse-dirs '("~/eclipse/jee-2019-06/eclipse"))
+    (eclim-executable "~/.p2/pool/plugins/org.eclim_2.8.0/bin/eclim")
+    (eclimd-autostart nil)
+    :hook (java-mode . eclim-mode))
+#+END_SRC
 * Misc Modes
 ** restclient
 #+BEGIN_SRC emacs-lisp
@@ -514,6 +542,13 @@ p** sr-speedbar
     :ensure t
     :defer t)
 #+END_SRC
+** TODO Latex
+#+BEGIN_SRC emacs-lisp
+  (use-package bibtex
+    :ensure t
+    :defer t)  
+#+END_SRC
+
 * Org-mode
 Changes the default dots to unicode characters
 #+BEGIN_SRC emacs-lisp
