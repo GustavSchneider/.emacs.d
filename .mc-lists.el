@@ -10,8 +10,10 @@
 	c-electric-lt-gt
 	c-electric-paren
 	c-electric-semi&comma
+	c-electric-slash
 	hydra-multiple-cursors/mc/edit-lines
 	hydra-multiple-cursors/mc/mark-more-like-this-extended
+	hydra-multiple-cursors/mc/reverse-regions
 	org-beginning-of-line
 	org-delete-char
 	org-end-of-line

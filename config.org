@@ -9,6 +9,8 @@
      (package-initialize)
      (setq url-http.attempt-keepalives nil)
      (add-to-list 'load-path "~/.emacs.d/elpa/")
+
+     (setq-default indent-tabs-mode nil)
    #+END_SRC
 ** has-clang
   Create a variable has-clang which later is used to check if clang is
@@ -517,6 +519,7 @@ p** sr-speedbar
       (defun my-c++-style-hook ()
         (c-set-style "my-c++-style"))
       (add-hook 'c++-mode-hook 'my-c++-style-hook)
+      (add-hook 'cuda-mode-hook 'my-c++-style-hook)
     #+END_SRC
 
 ** Eclim
@@ -556,16 +559,27 @@ Changes the default dots to unicode characters
     :ensure t
     :defer t
     :config
-    (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+    (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+    (add-hook 'org-mode-hook (lambda () (org-special-blocks 1)))
+)    
 #+END_SRC
 Emacs latex setup
 #+BEGIN_SRC emacs-lisp
-  (setq org-latex-pdf-process
-        '("pdflatex -interaction nonstopmode %f \
-           biber %b" "pdflatex -interaction nonstopmode %f \
-           pdflatex -interaction nonstopmode --synctex=-1 %f"))
+    ;; (setq org-latex-pdf-process
+    ;;       '("pdflatex -interaction nonstopmode %f \
+    ;;          biber %b" "pdflatex -interaction nonstopmode %f \
+    ;;          pdflatex -interaction nonstopmode --synctex=-1 %f"))
+  (setq org-latex-pdf-process (list
+     "latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -f  %f"))
 #+END_SRC
 Larger latex fragments
 #+BEGIN_SRC emacs-lisp
   (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
+#+END_SRC
+** org-babel language setup
+#+BEGIN_SRC emacs-lisp
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((dot . t)
+     (python . t)))
 #+END_SRC
