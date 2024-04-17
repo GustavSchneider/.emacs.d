@@ -1,23 +1,16 @@
 * Initial Setup
 ** package
    #+BEGIN_SRC emacs-lisp
-     (require 'package)
-     (add-to-list 'package-archives
-		  '("melpa" . "http://melpa.milkbox.net/packages/") t)
-     (add-to-list 'package-archives
-		  '("marmelade" . "http://marmalade-repo.org/packages/") t)
-     (package-initialize)
-     (setq url-http.attempt-keepalives nil)
-     (add-to-list 'load-path "~/.emacs.d/elpa/")
+   (require 'package)
+   (setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
+                            ("melpa" . "https://melpa.org/packages/")
+                            ("org" . "http://orgmode.org/elpa/")))
+   (package-initialize)
+   (add-to-list 'load-path "~/.emacs.d/elpa/")
 
-     (setq-default indent-tabs-mode nil)
+   (setq-default indent-tabs-mode nil)
    #+END_SRC
-** has-clang
-  Create a variable has-clang which later is used to check if clang is
-  installed.
-  #+BEGIN_SRC emacs-lisp
-    (defvar has-clang (not (eq (executable-find "clang") nil)))
-  #+END_SRC
+   
 ** use-package
   The configuration relies heavily on use-package to ensure packages
   are installed automatically. The following code ensures that
@@ -130,6 +123,8 @@
        (global-set-key (kbd "M-g") 'goto-line) 
        (global-set-key (kbd "<f9>") 'linum-mode) ;; show line number
        (global-set-key (kbd "C-<tab>") 'bury-buffer)
+
+       (setq visible-bell 1)
      #+END_SRC
 * Visual
 ** style
@@ -208,7 +203,7 @@
     
     (setq ido-vertical-define-keys 'C-n-and-C-p-only))
 #+END_SRC
-p** sr-speedbar
+** sr-speedbar
 #+BEGIN_SRC emacs-lisp
   (use-package sr-speedbar
     :ensure t
@@ -363,32 +358,7 @@ p** sr-speedbar
     :config
     (setq yas-snippet-dirs (append yas-snippet-dirs '("~/.emacs.d/snippets")))) 
 #+END_SRC
-** irony
-#+BEGIN_SRC emacs-lisp
-  (defun my-irony-mode-hook ()
-    (when (or (eq major-mode 'c++-mode) (eq major-mode 'c-mode))
-        (setq irony-additional-clang-options '("-std=c++17"))
-        (irony-mode 1)))
-  (when has-clang
-    (use-package irony
-      :ensure t
-      :defer t
-      :config
-      (add-hook 'c++-mode-hook 'my-irony-mode-hook)
-      (add-hook 'c-mode-hook 'my-irony-mode-hook)
-      (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
-      (add-hook 'irony-mode-hook #'irony-eldoc)
-      )
-    (use-package irony-eldoc    
-      :ensure t      
-      :after irony)
-    (use-package company-irony
-      :ensure t
-      :after irony)
-    (use-package flycheck-irony
-      :ensure t
-      :after irony))
-#+END_SRC
+
 ** company
 #+BEGIN_SRC emacs-lisp
   (use-package company-c-headers
@@ -401,63 +371,64 @@ p** sr-speedbar
     :ensure t
     :after company)
 
-  (defun my-company-visible-and-explicit-action-p ()
-    (and (company-tooltip-visible-p)
-	 (company-explicit-action-p)))
-  (defun my-company-mode-hook ()
-    "Setting up company-mode."
-    (setq company-require-match 'never)
-    (setq company-auto-complete
-	  #'my-company-visible-and-explicit-action-p)
-    (setq company-frontends
-	  '(company-pseudo-tooltip-unless-just-one-frontend
-	    company-preview-frontend
-	    company-echo-metadata-frontend))
-    (setq company-idle-delay 0)
-    (setq company-async-timeout 5)
-    (setq company-minimum-prefix-length 2)
-    (local-key-binding (kbd "<tab>") 'company-indent-or-complete-common)
-    (local-key-binding (kbd "TAB") 'company-indent-or-complete-common))
+  ;; (defun my-company-visible-and-explicit-action-p ()
+  ;;   (and (company-tooltip-visible-p)
+  ;;        (company-explicit-action-p)))
+  ;; (defun my-company-mode-hook ()
+  ;;   "Setting up company-mode."
+  ;;   (setq company-require-match 'never)
+  ;;   (setq company-auto-complete
+  ;; 	#'my-company-visible-and-explicit-action-p)
+  ;;   (setq company-frontends
+  ;; 	'(company-pseudo-tooltip-unless-just-one-frontend
+  ;; 	  company-preview-frontend
+  ;; 	  company-echo-metadata-frontend))
+  ;;   (setq company-idle-delay 0)
+  ;;   (setq company-async-timeout 5)
+  ;;   (setq company-minimum-prefix-length 2)
+  ;;   (local-key-binding (kbd "<tab>") 'company-indent-or-complete-common)
+  ;;   (local-key-binding (kbd "TAB") 'company-indent-or-complete-common))
 
-  (defun my-company-c-mode-hook ()
-    "Setup company-backends list for c and c++.
-  Emacs cant use company-irony if clang is not installed."
-    (if (not has-clang)
-	(set (make-local-variable 'company-backends) '(company-c-headers
-						       company-files))
-      (set (make-local-variable 'company-backends) '(company-irony))))
+  ;; (defun my-company-c-mode-hook ()
+  ;;   "Setup company-backends list for c and c++.
+  ;; Emacs cant use company-irony if clang is not installed."
+  ;;   (if (not has-clang)
+  ;;       (set (make-local-variable 'company-backends) '(company-c-headers
+  ;; 						     company-files))
+  ;;     (set (make-local-variable 'company-backends) '(company-irony))))
 
-  (defun my-company-glsl-mode-hook ()
-    "Setup company-backends list for glsl."
-    (set (make-local-variable 'company-backends) '(company-glsl)))
+  ;; (defun my-company-glsl-mode-hook ()
+  ;;   "Setup company-backends list for glsl."
+  ;;   (set (make-local-variable 'company-backends) '(company-glsl)))
 
-  (defun my-company-python-mode-hook ()
-    "Setup company-backends list for python."
-    (set (make-local-variable 'company-backends) '(company-jedi
-						   company-files)))
+  ;; (defun my-company-python-mode-hook ()
+  ;;   "Setup company-backends list for python."
+  ;;   (set (make-local-variable 'company-backends) '(company-jedi
+  ;; 						 company-files)))
 
-  (use-package company-emacs-eclim
-    :ensure t
-    :after company
-    :init (company-emacs-eclim-setup))
+  ;; (use-package company-emacs-eclim
+  ;;   :ensure t
+  ;;   :after company
+  ;;   :init (company-emacs-eclim-setup))
   (use-package company
     :ensure t
     :defer t
     :init
-    (add-hook 'prog-mode-hook 'company-mode)
-    (add-hook 'prog-mode-hook 'my-company-mode-hook)
-    (add-hook 'c++-mode-hook 'my-company-c-mode-hook)
-    (add-hook 'c-mode-hook 'my-company-c-mode-hook)
-    (add-hook 'glsl-mode-hook 'my-company-glsl-mode-hook)
-    (add-hook 'python-mode-hook 'my-company-python-mode-hook)
-    :bind
-    (:map company-active-map
-	  ("C-n" . company-select-next)
-	  ("C-p" . company-select-previous))
-    (:map company-search-map
-	  ("C-n" . company-select-next)
-	  ("C-p" . company-select-previous)
-	  ("C-t" . company-search-toggle-filtering)))
+    ;; (add-hook 'prog-mode-hook 'company-mode)
+    ;; (add-hook 'prog-mode-hook 'my-company-mode-hook)
+    ;; (add-hook 'c++-mode-hook 'my-company-c-mode-hook)
+    ;; (add-hook 'c-mode-hook 'my-company-c-mode-hook)
+    ;; (add-hook 'glsl-mode-hook 'my-company-glsl-mode-hook)
+    ;; (add-hook 'python-mode-hook 'my-company-python-mode-hook)
+    ;; :bind
+    ;; (:map company-active-map
+    ;;       ("C-n" . company-select-next)
+    ;;       ("C-p" . company-select-previous))
+    ;; (:map company-search-map
+    ;;       ("C-n" . company-select-next)
+    ;;       ("C-p" . company-select-previous)
+    ;;       ("C-t" . company-search-toggle-filtering))
+    )
 #+END_SRC
 
 ** flycheck
@@ -466,24 +437,160 @@ p** sr-speedbar
     :ensure t
     :config
     (add-hook 'after-init-hook #'global-flycheck-mode)
-    (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++17")))
-    (add-hook 'c++-mode-hook (lambda () (setq flycheck-clang-language-standard "c++17")))
-    (when has-clang (add-hook 'flycheck-mode-hook #'flycheck-irony-setup)))
+    ;;(add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++17")))
+    ;;(add-hook 'c++-mode-hook (lambda () (setq flycheck-clang-language-standard "c++17")))
+    ;;(when has-clang (add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
+    )
 #+END_SRC
 #+BEGIN_SRC emacs-lisp
   (use-package flycheck-color-mode-line
     :ensure t)
 #+END_SRC
 #+BEGIN_SRC emacs-lisp
-  (when has-clang
-    (use-package flycheck-clang-analyzer
-      :after flycheck
-      :ensure t
-      :defer t
-      :config
-      (flycheck-clang-analyzer-setup)
-      ))
+  (use-package flycheck-clang-analyzer
+    :after flycheck
+    :ensure t
+    :defer t
+    :config
+    (flycheck-clang-analyzer-setup)
+    )
 #+END_SRC
+
+** LSP Mode
+#+BEGIN_SRC emacs-lisp
+  (use-package lsp-mode
+    :ensure t
+    :init
+    (setq lsp-keymap-prefix "C-c l")
+    :hook
+    ((c++-mode . lsp)
+     (c++-ts-mode . lsp)
+     (lsp-mode . lsp-enable-which-key-integration))
+    :commands lsp)
+
+  (use-package lsp-ui :ensure t :commands lsp-ui-mode)
+  (use-package lsp-treemacs :ensure t :commands lsp-treemacs-errors-list)
+  (use-package dap-mode :ensure t)
+
+#+END_SRC
+
+** Treemacs
+#+BEGIN_SRC emacs-lisp
+  (use-package treemacs
+    :ensure t
+    :defer t
+    :init
+    (with-eval-after-load 'winum
+      (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
+    :config
+    (progn
+      (setq treemacs-collapse-dirs                   (if treemacs-python-executable 3 0)
+            treemacs-deferred-git-apply-delay        0.5
+            treemacs-directory-name-transformer      #'identity
+            treemacs-display-in-side-window          t
+            treemacs-eldoc-display                   'simple
+            treemacs-file-event-delay                2000
+            treemacs-file-extension-regex            treemacs-last-period-regex-value
+            treemacs-file-follow-delay               0.2
+            treemacs-file-name-transformer           #'identity
+            treemacs-follow-after-init               t
+            treemacs-expand-after-init               t
+            treemacs-find-workspace-method           'find-for-file-or-pick-first
+            treemacs-git-command-pipe                ""
+            treemacs-goto-tag-strategy               'refetch-index
+            treemacs-header-scroll-indicators        '(nil . "^^^^^^")
+            treemacs-hide-dot-git-directory          t
+            treemacs-indentation                     2
+            treemacs-indentation-string              " "
+            treemacs-is-never-other-window           nil
+            treemacs-max-git-entries                 5000
+            treemacs-missing-project-action          'ask
+            treemacs-move-forward-on-expand          nil
+            treemacs-no-png-images                   nil
+            treemacs-no-delete-other-windows         t
+            treemacs-project-follow-cleanup          nil
+            treemacs-persist-file                    (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
+            treemacs-position                        'left
+            treemacs-read-string-input               'from-child-frame
+            treemacs-recenter-distance               0.1
+            treemacs-recenter-after-file-follow      nil
+            treemacs-recenter-after-tag-follow       nil
+            treemacs-recenter-after-project-jump     'always
+            treemacs-recenter-after-project-expand   'on-distance
+            treemacs-litter-directories              '("/node_modules" "/.venv" "/.cask")
+            treemacs-project-follow-into-home        nil
+            treemacs-show-cursor                     nil
+            treemacs-show-hidden-files               t
+            treemacs-silent-filewatch                nil
+            treemacs-silent-refresh                  nil
+            treemacs-sorting                         'alphabetic-asc
+            treemacs-select-when-already-in-treemacs 'move-back
+            treemacs-space-between-root-nodes        t
+            treemacs-tag-follow-cleanup              t
+            treemacs-tag-follow-delay                1.5
+            treemacs-text-scale                      nil
+            treemacs-user-mode-line-format           nil
+            treemacs-user-header-line-format         nil
+            treemacs-wide-toggle-width               70
+            treemacs-width                           35
+            treemacs-width-increment                 1
+            treemacs-width-is-initially-locked       t
+            treemacs-workspace-switch-cleanup        nil)
+
+      ;; The default width and height of the icons is 22 pixels. If you are
+      ;; using a Hi-DPI display, uncomment this to double the icon size.
+      ;;(treemacs-resize-icons 44)
+
+      (treemacs-follow-mode t)
+      (treemacs-filewatch-mode t)
+      (treemacs-fringe-indicator-mode 'always)
+      (when treemacs-python-executable
+        (treemacs-git-commit-diff-mode t))
+
+      (pcase (cons (not (null (executable-find "git")))
+                   (not (null treemacs-python-executable)))
+        (`(t . t)
+         (treemacs-git-mode 'deferred))
+        (`(t . _)
+         (treemacs-git-mode 'simple)))
+
+      (treemacs-hide-gitignored-files-mode nil))
+    :bind
+    (:map global-map
+          ("M-0"       . treemacs-select-window)
+          ("C-x t 1"   . treemacs-delete-other-windows)
+          ("C-x t t"   . treemacs)
+          ("C-x t d"   . treemacs-select-directory)
+          ("C-x t B"   . treemacs-bookmark)
+          ("C-x t C-t" . treemacs-find-file)
+          ("C-x t M-t" . treemacs-find-tag)))
+
+  (use-package treemacs-icons-dired
+    :hook (dired-mode . treemacs-icons-dired-enable-once)
+    :ensure t)
+
+  (use-package treemacs-magit
+    :after (treemacs magit)
+    :ensure t)
+
+  (use-package treemacs-persp ;;treemacs-perspective if you use perspective.el vs. persp-mode
+    :after (treemacs persp-mode) ;;or perspective vs. persp-mode
+    :ensure t
+    :config (treemacs-set-scope-type 'Perspectives))
+
+  (use-package treemacs-tab-bar ;;treemacs-tab-bar if you use tab-bar-mode
+    :after (treemacs)
+    :ensure t
+    :config (treemacs-set-scope-type 'Tabs))
+#+END_SRC
+
+** clang-format
+
+#+BEGIN_SRC emacs-lisp
+  (use-package clang-format
+    :ensure t)
+#+END_SRC
+
 * Programming
 ** glsl-mode
 #+BEGIN_SRC emacs-lisp
